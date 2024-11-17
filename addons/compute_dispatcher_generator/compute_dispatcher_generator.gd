@@ -1,17 +1,26 @@
 @tool
 extends EditorPlugin
+"""
+The primary code for controlling the dispatcher script generation
+"""
+
+const GLSLParser: GDScript = preload("glsl_parser.gd")
 
 var tool_menu_text: String = "Generate GLSL Compute Dispatcher..."
 var file_dialog: EditorFileDialog = null
 
+var _glsl_parser: GLSLParser
+
 func _enter_tree() -> void:
 	# Initialization of the plugin goes here.
+	_glsl_parser = GLSLParser.new()
 	add_tool_menu_item(tool_menu_text, dispatcher_create)
 
 
 func _exit_tree() -> void:
 	# Clean-up of the plugin goes here.
 	remove_tool_menu_item(tool_menu_text)
+	_glsl_parser.free()
 
 
 func dispatcher_create() -> void:
@@ -43,6 +52,9 @@ func create_dispatcher_from_filename(filename: String) -> void:
 	print_debug("GLSL file selected: ", filename)
 	
 	# parse for layout local size
+	var token_dict: Dictionary = _glsl_parser.get_token_dictionary_from_glsl_file(filename)
+	
+	print_debug(token_dict)
 	# parse for each input and output
 	# Get the output destination for the script
 	# create a script with:
