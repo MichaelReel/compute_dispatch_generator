@@ -28,10 +28,19 @@ func _get_layout_from_glsl(content: String) -> Vector3i:
 
 
 func _get_in_out_buffer_lines(content: String) -> PackedStringArray:
-	# TODO: Need to account for multiline definitions with {} blocks
-	#       Currently capturing up to the first ; in the block
+	"""Return array of 'layout' definitions lifted from the shader"""
 	
-	var regex: RegEx = RegEx.create_from_string(r"layout(?:\n|[^;])*;")
+	var regex: RegEx = RegEx.create_from_string(r"layout(?:\n|[^{};])*(?:{(?:\n|[^{}])*})?(?:\n|[^{};])*;")
+	# Regex breakdown:
+	# 
+	# layout                    - Line starts with the layout keyword
+	# (?:\n|[^{};])*            - Any number of newlines or other non { or } or ; characters
+	# (?:{                      \
+	#   (?:\n|[^{}])*            } - A block delimited by { and } with any number newlines and non block characters
+	# })?                       / 
+	# (?:\n|[^{};])*            - Any number of newlines or other non { or } or ; characters
+	# ;                         - final statement delimiter
+	
 	var results: Array[RegExMatch] = regex.search_all(content)
 	var buffer_lines: PackedStringArray = PackedStringArray()
 	
