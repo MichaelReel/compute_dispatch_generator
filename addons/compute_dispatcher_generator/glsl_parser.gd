@@ -21,13 +21,14 @@ func get_token_dictionary_from_glsl_file(filename: String) -> Dictionary:
 			i += 1
 	
 	# Pull apart each buffer line and extract the relevant configuration
-	# See also: 4.4. Layout Qualifiers
-	#           https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers
 	var qualifiers_by_id: Dictionary = {}
 	for buffer_line in buffer_lines:
 		
 		var buffer_name: String = _get_buffer_identifier_from_line(buffer_line)
-		var qualifiers: PackedStringArray = _get_layout_qualifiers_from_line(buffer_line)
+		var qualifiers: PackedStringArray = PackedStringArray()
+		qualifiers.append_array(_get_layout_qualifiers_from_line(buffer_line))
+		qualifiers.append_array(_get_memory_qualifiers_from_line(buffer_line))
+		qualifiers.append_array(_get_storage_qualifiers_from_line(buffer_line))
 		print(buffer_line + " has id " + buffer_name)
 		qualifiers_by_id[buffer_name] = qualifiers
 	
@@ -94,10 +95,12 @@ func _get_buffer_identifier_from_line(line: String) -> String:
 
 
 func _get_layout_qualifiers_from_line(line: String) -> PackedStringArray:
-	"""Return an array containing all the qualifiers in this line"""
+	"""Return an array containing all the layout qualifiers in this line"""
 	
-	# TODO: Some of these shouldn't really appear
+	# https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers
+	
 	var regex_as_string: String = (
+		r"[(){},\s\n]" +
 		r"(shared|" + 
 		r"packed|" + 
 		r"std140|" + 
@@ -150,7 +153,57 @@ func _get_layout_qualifiers_from_line(line: String) -> PackedStringArray:
 		r"rg8ui|" +
 		r"r32ui|" +
 		r"r16ui|" +
-		r"r8ui)"
+		r"r8ui)" +
+		r"[(){},\s\n]"
+	)
+	var regex: RegEx = RegEx.create_from_string(regex_as_string)
+	var results: Array[RegExMatch] = regex.search_all(line)
+	var matching_qualifiers: PackedStringArray = PackedStringArray()
+	for result: RegExMatch in results:
+		matching_qualifiers.append(result.strings[1])
+	
+	return matching_qualifiers
+
+
+func _get_memory_qualifiers_from_line(line: String) -> PackedStringArray:
+	"""Return an array containing all the memory qualifiers in this line"""
+	
+	# https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html#memory-qualifiers
+	
+	var regex_as_string: String = (
+		r"[(){},\s\n]" +
+		r"(coherent|" +
+		r"volatile|" +
+		r"restrict|" +
+		r"readonly|" +
+		r"writeonly)" +
+		r"[(){},\s\n]"
+	)
+	var regex: RegEx = RegEx.create_from_string(regex_as_string)
+	var results: Array[RegExMatch] = regex.search_all(line)
+	var matching_qualifiers: PackedStringArray = PackedStringArray()
+	for result: RegExMatch in results:
+		matching_qualifiers.append(result.strings[1])
+	
+	return matching_qualifiers
+
+
+func _get_storage_qualifiers_from_line(line: String) -> PackedStringArray:
+	"""Return an array containing all the storage qualifiers in this line"""
+	
+	# https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html#storage-qualifiers
+	
+	var regex_as_string: String = (
+		r"[(){},\s\n]" +
+		r"(in|" +
+		r"const|" +
+		r"varying|" +
+		r"out|" +
+		r"attribute|" +
+		r"uniform|" +
+		r"buffer|" +
+		r"shared)" +
+		r"[(){},\s\n]"
 	)
 	var regex: RegEx = RegEx.create_from_string(regex_as_string)
 	var results: Array[RegExMatch] = regex.search_all(line)
