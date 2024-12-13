@@ -29,8 +29,15 @@ func get_token_dictionary_from_glsl_file(filename: String) -> Dictionary:
 		qualifiers.append_array(_get_layout_qualifiers_from_line(buffer_line))
 		qualifiers.append_array(_get_memory_qualifiers_from_line(buffer_line))
 		qualifiers.append_array(_get_storage_qualifiers_from_line(buffer_line))
-		print(buffer_line + " has id " + buffer_name)
 		qualifiers_by_id[buffer_name] = qualifiers
+	
+	# Pull out the actual data type from the line
+	var data_types_by_id: Dictionary = {}
+	for buffer_line in buffer_lines:
+		var buffer_name: String = _get_buffer_identifier_from_line(buffer_line)
+		var data_type: String = _get_data_type_from_buffer_line(buffer_line, buffer_name)
+		data_types_by_id[buffer_name] = data_type
+	
 	
 	# Put together a response dictionary 
 	token_dict["glsl_local_size"] = {
@@ -39,6 +46,7 @@ func get_token_dictionary_from_glsl_file(filename: String) -> Dictionary:
 	}
 	token_dict["buffer_debug"] = buffer_lines
 	token_dict["qualifiers_by_id"] = qualifiers_by_id
+	token_dict["data_types_by_id"] = data_types_by_id
 	
 	return token_dict
 
@@ -212,3 +220,24 @@ func _get_storage_qualifiers_from_line(line: String) -> PackedStringArray:
 		matching_qualifiers.append(result.strings[1])
 	
 	return matching_qualifiers
+
+func _get_data_type_from_buffer_line(line: String, id: String) -> String:
+	# https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html#basic-types
+	
+	var regex_as_string: String = (
+		r"\{" +                           # Start of block
+		r"[\n\s]*" +                      # 
+		r"([^\{\};]*)" +                  # TODO: Assuming a single array for now
+		r"[\n\s]*;[\n\s]*" +              # ;
+		r"\}" +                           # End of Block
+		r"|" +                            # OR
+		r"([^\s}]*)" +                    # Predefined type
+		r"[\n\s]*" +                      # 
+		r"(?:{id});".format({"id": id})   # Line will finish with the id
+	)
+	
+	var regex: RegEx = RegEx.create_from_string(regex_as_string)
+	var result: RegExMatch = regex.search(line)
+	var data_definition: String = result.strings[1] + result.strings[2]
+	
+	return data_definition

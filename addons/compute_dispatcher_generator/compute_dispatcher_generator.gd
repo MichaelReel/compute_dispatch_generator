@@ -66,14 +66,17 @@ func create_dispatcher_from_filename(filename: String) -> void:
 	# create a script with:
 	# - some tool identifiable header
 	# - comment/doc indicating the file is generated and giving information
-	
 	# - proper exports for setting up inputs
 	# - proper functions for extracting outputs
 	# - signals for completion
 	var header: String = _dispatch_components.create_dispatch_script_header()
+	var exports: String = _dispatch_components.create_parameters_as_exports(token_dict["data_types_by_id"])
 	var parameters: String = _dispatch_components.create_parameter_list(token_dict["qualifiers_by_id"])
+	var export_func: String = _dispatch_components.create_displatch_with_exports_function(token_dict["qualifiers_by_id"], filename)
 	var func_head: String = _dispatch_components.begin_dispatch_function_with_rd(filename, parameters)
-	print(header + func_head)
+	print(
+		header + exports + export_func + func_head
+	)
 	# May need to trigger the editor to indicate file added/changed
 	
 	print_debug("dispatcher_create complete")
