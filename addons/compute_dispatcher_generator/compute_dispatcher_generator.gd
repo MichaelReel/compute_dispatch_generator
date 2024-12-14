@@ -6,25 +6,33 @@ The primary code for controlling the dispatcher script generation
 
 const GLSLParser: GDScript = preload("glsl_parser.gd")
 const DispatchComponents: GDScript = preload("dispatcher_components.gd")
+const CodePopup: GDScript = preload("code_popup.gd")
+const CodePopupScene: PackedScene = preload("code_popup.tscn")
 
 var tool_menu_text: String = "Generate GLSL Compute Dispatcher..."
 var file_dialog: EditorFileDialog = null
 
 var _glsl_parser: GLSLParser
 var _dispatch_components: DispatchComponents
+var _code_popup: CodePopup
+
 
 func _enter_tree() -> void:
 	# Initialization of the plugin goes here.
 	_glsl_parser = GLSLParser.new()
 	_dispatch_components = DispatchComponents.new()
+	_code_popup = CodePopupScene.instantiate()
+	get_editor_interface().get_base_control().add_child(_code_popup)
 	add_tool_menu_item(tool_menu_text, dispatcher_create)
 
 
 func _exit_tree() -> void:
 	# Clean-up of the plugin goes here.
 	remove_tool_menu_item(tool_menu_text)
-	_dispatch_components.free()
-	_glsl_parser.free()
+	get_editor_interface().get_base_control().remove_child(_code_popup)
+	_code_popup.queue_free()
+	_dispatch_components.queue_free()
+	_glsl_parser.queue_free()
 
 
 func dispatcher_create() -> void:
@@ -52,6 +60,11 @@ func dispatcher_create() -> void:
 	EditorInterface.popup_dialog_centered(file_dialog)
 
 
+func display_code_in_popup(code: String) -> void:
+	#print(code)
+	_code_popup.show_code(code)
+
+
 func create_dispatcher_from_filename(filename: String) -> void:
 	print_debug("GLSL file selected: ", filename)
 	
@@ -74,9 +87,10 @@ func create_dispatcher_from_filename(filename: String) -> void:
 	var parameters: String = _dispatch_components.create_parameter_list(token_dict["qualifiers_by_id"])
 	var export_func: String = _dispatch_components.create_displatch_with_exports_function(token_dict["qualifiers_by_id"], filename)
 	var func_head: String = _dispatch_components.begin_dispatch_function_with_rd(filename, parameters)
-	print(
+	display_code_in_popup(
 		header + exports + export_func + func_head
 	)
 	# May need to trigger the editor to indicate file added/changed
+	
 	
 	print_debug("dispatcher_create complete")

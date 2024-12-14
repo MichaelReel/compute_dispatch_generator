@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://ctm0plgj5uexq"]
+
+[ext_resource type="Script" path="res://addons/compute_dispatcher_generator/code_popup.gd" id="1_vfnde"]
+
+[node name="CodePopup" type="PopupPanel"]
+title = "Dispatcher GDScript"
+position = Vector2i(470, 250)
+size = Vector2i(400, 600)
+visible = true
+unresizable = false
+borderless = false
+script = ExtResource("1_vfnde")
+
+[node name="CodeEdit" type="CodeEdit" parent="."]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 396.0
+offset_bottom = 596.0
+gutters_draw_fold_gutter = true
