@@ -5,6 +5,7 @@ extends PopupPanel
 
 func _ready() -> void:
 	_set_to_center()
+	hide()
 
 func show_code(code: String) -> void:
 	code_edit.text = code

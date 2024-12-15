@@ -4,9 +4,8 @@
 
 [node name="CodePopup" type="PopupPanel"]
 title = "Dispatcher GDScript"
-position = Vector2i(470, 250)
-size = Vector2i(400, 600)
-visible = true
+position = Vector2i(880, 304)
+size = Vector2i(800, 800)
 unresizable = false
 borderless = false
 script = ExtResource("1_vfnde")
@@ -14,6 +13,6 @@ script = ExtResource("1_vfnde")
 [node name="CodeEdit" type="CodeEdit" parent="."]
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 396.0
-offset_bottom = 596.0
+offset_right = 796.0
+offset_bottom = 796.0
 gutters_draw_fold_gutter = true

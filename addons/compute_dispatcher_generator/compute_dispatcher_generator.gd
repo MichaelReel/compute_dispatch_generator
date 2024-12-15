@@ -82,10 +82,13 @@ func create_dispatcher_from_filename(filename: String) -> void:
 	# - proper exports for setting up inputs
 	# - proper functions for extracting outputs
 	# - signals for completion
-	var header: String = _dispatch_components.create_dispatch_script_header()
-	var exports: String = _dispatch_components.create_parameters_as_exports(token_dict["data_types_by_id"])
-	var parameters: String = _dispatch_components.create_parameter_list(token_dict["qualifiers_by_id"])
-	var export_func: String = _dispatch_components.create_displatch_with_exports_function(token_dict["qualifiers_by_id"], filename)
+	var parameters: Array[String] = _dispatch_components.create_parameter_list(token_dict["data_types_by_id"])
+	var parameter_names: Array[String] = []
+	parameter_names.assign(token_dict["data_types_by_id"].keys())
+	var node_name: String = _dispatch_components.get_local_file_name_as_class_name(filename) + "Dispatcher"
+	var header: String = _dispatch_components.create_dispatch_script_header(node_name)
+	var exports: String = _dispatch_components.create_parameters_as_exports(parameters)
+	var export_func: String = _dispatch_components.create_displatch_with_exports_function(parameter_names, filename)
 	var func_head: String = _dispatch_components.begin_dispatch_function_with_rd(filename, parameters)
 	display_code_in_popup(
 		header + exports + export_func + func_head
