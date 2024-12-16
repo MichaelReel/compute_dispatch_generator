@@ -83,15 +83,20 @@ func create_dispatcher_from_filename(filename: String) -> void:
 	# - proper functions for extracting outputs
 	# - signals for completion
 	var parameters: Array[String] = _dispatch_components.create_parameter_list(token_dict["data_types_by_id"])
-	var parameter_names: Array[String] = []
-	parameter_names.assign(token_dict["data_types_by_id"].keys())
+	var parameter_names: Array[String] = _dispatch_components.get_scripted_parameter_names(token_dict["data_types_by_id"])
 	var node_name: String = _dispatch_components.get_local_file_name_as_class_name(filename) + "Dispatcher"
+	var local_size: Vector3i = token_dict["glsl_local_size"]["value"]
+	
 	var header: String = _dispatch_components.create_dispatch_script_header(node_name)
 	var exports: String = _dispatch_components.create_parameters_as_exports(parameters)
+	var shader_refs: String = _dispatch_components.create_shader_references(local_size)
+	var buffer_rids: String = _dispatch_components.create_buffer_rid_references(token_dict["data_types_by_id"])
 	var export_func: String = _dispatch_components.create_displatch_with_exports_function(parameter_names, filename)
 	var func_head: String = _dispatch_components.begin_dispatch_function_with_rd(filename, parameters)
+	var uniforms: String = _dispatch_components.create_uniform_configurations(token_dict["data_types_by_id"], token_dict["qualifiers_by_id"])
+	
 	display_code_in_popup(
-		header + exports + export_func + func_head
+		header + exports + shader_refs + buffer_rids + export_func + func_head + uniforms
 	)
 	# May need to trigger the editor to indicate file added/changed
 	
