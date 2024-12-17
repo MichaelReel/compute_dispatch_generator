@@ -72,6 +72,7 @@ func create_dispatcher_from_filename(filename: String) -> void:
 	var token_dict: Dictionary = _glsl_parser.get_token_dictionary_from_glsl_file(filename)
 	
 	print_debug(token_dict)
+	
 	# parse for each input and output
 	# Get the output destination for the script
 	# # Print to STDOUT for now?
@@ -89,16 +90,18 @@ func create_dispatcher_from_filename(filename: String) -> void:
 	
 	var header: String = _dispatch_components.create_dispatch_script_header(node_name)
 	var exports: String = _dispatch_components.create_parameters_as_exports(parameters)
-	var shader_refs: String = _dispatch_components.create_shader_references(local_size)
+	var shader_refs: String = _dispatch_components.create_shader_references(local_size, token_dict["set_ids"])
 	var buffer_rids: String = _dispatch_components.create_buffer_rid_references(token_dict["data_types_by_id"])
 	var export_func: String = _dispatch_components.create_displatch_with_exports_function(parameter_names, filename)
 	var func_head: String = _dispatch_components.begin_dispatch_function_with_rd(filename, parameters)
-	var uniforms: String = _dispatch_components.create_uniform_configurations(token_dict["data_types_by_id"], token_dict["qualifiers_by_id"])
+	var uniforms: String = _dispatch_components.create_uniform_configurations(
+		token_dict["data_types_by_id"], token_dict["qualifiers_by_id"], token_dict["set_ids"]
+	)
+	var pipeline: String = _dispatch_components.create_pipeline_configuration(token_dict["set_ids"])
 	
 	display_code_in_popup(
-		header + exports + shader_refs + buffer_rids + export_func + func_head + uniforms
+		header + exports + shader_refs + buffer_rids + export_func + func_head + uniforms + pipeline
 	)
 	# May need to trigger the editor to indicate file added/changed
-	
 	
 	print_debug("dispatcher_create complete")

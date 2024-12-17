@@ -39,6 +39,13 @@ func get_token_dictionary_from_glsl_file(filename: String) -> Dictionary:
 		var data_type: String = _get_data_type_from_buffer_line(buffer_line, buffer_name)
 		data_types_by_id[buffer_name] = data_type
 	
+	# Get a list of possible set_ids
+	var set_ids_dict: Dictionary = {}
+	for id in qualifiers_by_id:
+		var qualifiers: PackedStringArray = qualifiers_by_id[id]
+		for qualifier: String in qualifiers:
+			if qualifier.begins_with("set"):
+				set_ids_dict[int(qualifier.rsplit("=")[1])] = null
 	
 	# Put together a response dictionary 
 	token_dict["glsl_local_size"] = {
@@ -48,6 +55,7 @@ func get_token_dictionary_from_glsl_file(filename: String) -> Dictionary:
 	token_dict["buffer_debug"] = buffer_lines
 	token_dict["qualifiers_by_id"] = qualifiers_by_id
 	token_dict["data_types_by_id"] = data_types_by_id
+	token_dict["set_ids"] = set_ids_dict.keys()
 	
 	return token_dict
 
