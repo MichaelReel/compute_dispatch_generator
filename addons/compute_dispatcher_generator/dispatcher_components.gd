@@ -189,7 +189,7 @@ func _create_byte_array_uniform_configuration(parameter_name: String, data_type:
 	return """
 	# Create storage for {parameter_name}
 	var {parameter_name}_bytes: PackedByteArray = {parameter_name}.to_byte_array()
-	var {parameter_name}_buffer: RID = rd.storage_buffer_create({parameter_name}_bytes.size(), {parameter_name}_bytes)
+	_{parameter_name}_rid = rd.storage_buffer_create({parameter_name}_bytes.size(), {parameter_name}_bytes)
 	var {parameter_name}_uniform := RDUniform.new()
 	{parameter_name}_uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
 	{parameter_name}_uniform.binding = {binding_id}
@@ -238,7 +238,7 @@ func _create_texture_uniform_configuration(parameter_name: String, data_type: St
 	# Load into memory
 	var {parameter_name}_view: RDTextureView = RDTextureView.new()
 	var {parameter_name}_data: PackedByteArray = {parameter_name}_image.get_data()
-	var {parameter_name}_texture_rid = _rd.texture_create(
+	_{parameter_name}_rid = _rd.texture_create(
 		{parameter_name}_format, {parameter_name}_view, [{parameter_name}_data]
 	)
 	
@@ -282,3 +282,42 @@ func create_pipeline_configuration(set_ids: Array) -> String:
 	"""
 	
 	return pipeline_configuration
+
+func create_extraction_functions(data_types_by_id: Dictionary, qualifiers_by_id: Dictionary, set_ids: Array) -> String:
+	var extraction_functions: String = ""
+	
+	for glsl_parameter_name in data_types_by_id:
+		var parameter_name: String = _scriptify_parameter_name(glsl_parameter_name)
+		var data_type: String = data_types_by_id[glsl_parameter_name]
+		var qualifiers: PackedStringArray = qualifiers_by_id[glsl_parameter_name]
+		
+		if data_type.ends_with("[]"):
+			extraction_functions += _create_byte_array_extraction(parameter_name, data_type, qualifiers)
+		
+		if data_type.begins_with("image"):
+			extraction_functions += _create_texture_extraction(parameter_name, data_type, qualifiers)
+	
+	return extraction_functions
+
+func _create_byte_array_extraction(parameter_name: String, data_type: String, qualifiers: PackedStringArray) -> String:
+	return """
+func extract_{paramater_name}() -> {packed_array_type}:
+	var output_bytes: PackedByteArray = _rd.buffer_get_data(_{paramater_name}_rid)
+	var {paramater_name}_array: {packed_array_type} = {packed_array_type}()
+	{parameter_name}_array.assign(output_bytes.to_{array}_array())
+	return {parameter_name}_array
+""".format({"parameter_name": parameter_name})
+	
+func _create_texture_extraction(parameter_name: String, data_type: String, qualifiers: PackedStringArray) -> String:
+	return """
+func extract_{paramater_name}() -> Texture:
+	var image_bytes : PackedByteArray = _rd.texture_get_data(_{paramater_name}_rid, 0)
+	var output_image: Image = Image.create_from_data(
+		{size.x},
+		{size.y},
+		false,
+		{image_format},
+		image_bytes,
+	)
+	return ImageTexture.create_from_image(output_image)
+"""

@@ -98,9 +98,12 @@ func create_dispatcher_from_filename(filename: String) -> void:
 		token_dict["data_types_by_id"], token_dict["qualifiers_by_id"], token_dict["set_ids"]
 	)
 	var pipeline: String = _dispatch_components.create_pipeline_configuration(token_dict["set_ids"])
+	var extractors: String = _dispatch_components.create_extraction_functions(
+		token_dict["data_types_by_id"], token_dict["qualifiers_by_id"], token_dict["set_ids"]
+	)
 	
 	display_code_in_popup(
-		header + exports + shader_refs + buffer_rids + export_func + func_head + uniforms + pipeline
+		header + exports + shader_refs + buffer_rids + export_func + func_head + uniforms + pipeline + extractors
 	)
 	# May need to trigger the editor to indicate file added/changed
 	
